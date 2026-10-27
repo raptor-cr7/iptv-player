@@ -79,6 +79,7 @@
   .ch{
     display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 10px;margin-bottom:6px;
     background:rgba(255,255,255,.03);border:1px solid transparent;border-radius:14px;color:var(--ink);cursor:pointer;
+    content-visibility:auto;contain-intrinsic-size:auto 60px;
   }
   .ch:hover{background:rgba(255,255,255,.07)}
   .ch.active{border-color:rgba(232,54,45,.65);background:rgba(232,54,45,.10)}
@@ -219,6 +220,8 @@ function parseM3U(text){
 }
 function setChannels(list, sourceLabel){
   channels=list;
+  byUrl={};
+  channels.forEach(function(c){ c._n=c.name.toLowerCase(); if(!byUrl[c.url]) byUrl[c.url]=c; });
   activeGroup='All'; query=''; $('#search').value='';
   if(!channels.length){ toast('No channels found in that playlist.'); }
   else toast('Loaded '+channels.length+' channels'+(sourceLabel?' from '+sourceLabel:'')+'.');
@@ -262,7 +265,7 @@ function loadEpgUrl(url){
       }
       Object.keys(epg).forEach(function(k){ epg[k].sort(function(a,b){return a.start-b.start}); });
       localStorage.setItem('riptv_epg_url', url);
-      toast('TV guide loaded.'); renderList(true); updateNowBar();
+      toast('TV guide loaded.'); updateNowBar();
     })
     .catch(function(){ toast('Could not load that EPG link (it may be blocked by CORS).'); });
 }
@@ -275,30 +278,20 @@ function nowNext(id){
 function fmtTime(d){ return d? d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : ''; }
 
 /* ---------------- rendering ---------------- */
+var byUrl={};
 function filtered(){
   return channels.filter(function(c){
     if(activeGroup==='★ Favourites' && !favs.has(c.url)) return false;
     if(activeGroup!=='All' && activeGroup!=='★ Favourites' && c.group!==activeGroup) return false;
-    if(query && c.name.toLowerCase().indexOf(query)===-1) return false;
+    if(query && (c._n||c.name.toLowerCase()).indexOf(query)===-1) return false;
     return true;
   });
 }
-var RENDER_STEP=400, renderedCount=0, currentItems=[];
+var RENDER_STEP=150, renderedCount=0, currentItems=[];
 function rowHTML(c){
   return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
-    +(c.logo?'<img loading="lazy" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
+    +(c.logo?'<img loading="lazy" decoding="async" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
     +'<span class="meta"><span class="name">'+esc(c.name)+'</span></span></button>';
-}
-function attachRowHandlers(){
-  Array.prototype.forEach.call(listEl.querySelectorAll('.ch'),function(btn){
-    if(btn._bound) return; btn._bound=1;
-    btn.addEventListener('click',function(e){
-      var url=btn.getAttribute('data-url');
-      var ch=channels.filter(function(c){return c.url===url})[0];
-      if(e.target.hasAttribute('data-star')){ toggleFav(ch); return; }
-      if(ch) play(ch);
-    });
-  });
 }
 function updateCount(){
   countEl.innerHTML='Showing <b>'+renderedCount+'</b> of <b>'+currentItems.length+'</b> channels · <b>'+channels.length+'</b> total';
@@ -313,8 +306,15 @@ function appendBatch(){
   if(mb) mb.insertAdjacentHTML('beforebegin', slice.map(rowHTML).join(''));
   else listEl.insertAdjacentHTML('beforeend', slice.map(rowHTML).join(''));
   renderedCount+=slice.length;
-  attachRowHandlers();
   updateCount();
+}
+function markActive(){
+  var prev=listEl.querySelector('.ch.active');
+  if(prev) prev.classList.remove('active');
+  if(!current) return;
+  var key=(window.CSS&&CSS.escape)?CSS.escape(current.url):current.url.replace(/"/g,'\\"');
+  var el=listEl.querySelector('.ch[data-url="'+key+'"]');
+  if(el) el.classList.add('active');
 }
 function renderList(keep){
   var st=listEl.scrollTop, prevRendered=renderedCount;
@@ -387,7 +387,7 @@ function play(ch,auto){
   }
   recents=[{name:ch.name,logo:ch.logo,group:ch.group,id:ch.id,url:ch.url}].concat(recents.filter(function(r){return r.url!==ch.url})).slice(0,12);
   localStorage.setItem('riptv_recents', JSON.stringify(recents));
-  renderRecents(); renderList(true); updateNowBar();
+  renderRecents(); markActive(); updateNowBar();
 }
 function updateNowBar(){
   var logo=$('#nowLogo');
@@ -418,14 +418,28 @@ $('#playlistUrl').addEventListener('keydown',function(e){ if(e.key==='Enter') lo
 $('#loadEpgBtn').addEventListener('click',function(){ loadEpgUrl($('#epgUrl').value.trim()); });
 $('#demoBtn').addEventListener('click',function(){ setChannels(DEMO.slice(),'demo'); play(DEMO[0]); });
 $('#allBtn').addEventListener('click',function(){ $('#playlistUrl').value=DEFAULT_URL; loadPlaylistUrl(DEFAULT_URL,'iptv-org'); });
-listEl.addEventListener('scroll',function(){ if(listEl.scrollTop+listEl.clientHeight>=listEl.scrollHeight-500) appendBatch(); });
+listEl.addEventListener('scroll',function(){ if(listEl.scrollTop+listEl.clientHeight>=listEl.scrollHeight-500) appendBatch(); },{passive:true});
+listEl.addEventListener('click',function(e){
+  var btn=e.target&&e.target.closest?e.target.closest('.ch'):null;
+  if(!btn||!listEl.contains(btn)) return;
+  var ch=byUrl[btn.getAttribute('data-url')];
+  if(!ch) return;
+  if(e.target.closest&&e.target.closest('[data-star]')){ toggleFav(ch); return; }
+  play(ch);
+});
 $('#fileInput').addEventListener('change',function(e){
   var f=e.target.files[0]; if(!f) return;
   var r=new FileReader();
   r.onload=function(){ setChannels(parseM3U(String(r.result)),'file'); };
   r.readAsText(f);
 });
-$('#search').addEventListener('input',function(e){ query=e.target.value.trim().toLowerCase(); renderList(); });
+var searchTimer=null;
+$('#search').addEventListener('input',function(e){
+  var v=e.target.value.trim().toLowerCase();
+  if(v===query) return;
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(function(){ query=v; renderList(); },160);
+});
 $('#quality').addEventListener('change',function(e){ if(hls) hls.currentLevel=parseInt(e.target.value,10); });
 $('#favBtn').addEventListener('click',function(){ if(current) toggleFav(current); });
 $('#pipBtn').addEventListener('click',function(){
