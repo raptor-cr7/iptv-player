@@ -39,7 +39,7 @@
   .badge{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.03)}
   .badge .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3ddc74;margin-right:7px;box-shadow:0 0 10px #3ddc74}
   /* ---------- layout ---------- */
-  .layout{display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start}
+  .layout{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
   @media (max-width:960px){.layout{grid-template-columns:1fr}}
   /* ---------- sidebar ---------- */
   .sidebar{padding:18px;position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
@@ -134,28 +134,6 @@
   </header>
 
   <div class="layout">
-    <aside class="sidebar glass">
-      <h3>Playlist</h3>
-      <div class="field">
-        <input type="url" id="playlistUrl" placeholder="Paste your M3U playlist link…" autocomplete="off">
-        <button class="btn primary" id="loadUrlBtn" type="button">Load</button>
-      </div>
-      <div class="rowbtns">
-        <label class="btn filebtn">Open M3U file<input type="file" id="fileInput" accept=".m3u,.m3u8,.txt"></label>
-        <button class="btn" id="demoBtn" type="button">Demo channels</button>
-        <button class="btn" id="allBtn" type="button">All channels (iptv-org)</button>
-      </div>
-      <h3>TV Guide (EPG)</h3>
-      <div class="field">
-        <input type="url" id="epgUrl" placeholder="XMLTV / EPG link (optional)…" autocomplete="off">
-        <button class="btn" id="loadEpgBtn" type="button">Load</button>
-      </div>
-      <input type="search" id="search" placeholder="Search channels…" autocomplete="off">
-      <div class="count" id="count"></div>
-      <div class="chips" id="groups"></div>
-      <div class="list" id="channelList"></div>
-    </aside>
-
     <section class="stage">
       <div class="player glass">
         <div class="screen">
@@ -179,6 +157,27 @@
       </div>
       <p class="note">Tip: an M3U link works best. Some providers block playback inside browsers (CORS) or use non-HLS stream formats — those channels can't play in any web player; that limit is set by the provider, not by this site. Favourites, recents and your playlist link are saved only in this browser (localStorage).</p>
     </section>
+
+    <aside class="sidebar glass">
+      <h3>Playlist</h3>
+      <div class="field">
+        <input type="url" id="playlistUrl" placeholder="Paste your M3U playlist link…" autocomplete="off">
+        <button class="btn primary" id="loadUrlBtn" type="button">Load</button>
+      </div>
+      <div class="rowbtns">
+        <label class="btn filebtn">Open M3U file<input type="file" id="fileInput" accept=".m3u,.m3u8,.txt"></label>
+        <button class="btn" id="demoBtn" type="button">Demo channels</button>
+        <button class="btn" id="allBtn" type="button">All channels (iptv-org)</button>
+      </div>
+      <h3>TV Guide (EPG)</h3>
+      <div class="field">
+        <input type="url" id="epgUrl" placeholder="XMLTV / EPG link (optional)…" autocomplete="off">
+        <button class="btn" id="loadEpgBtn" type="button">Load</button>
+      </div>
+      <input type="search" id="search" placeholder="Search channels…" autocomplete="off">
+      <div class="count" id="count"></div>
+      <div class="list" id="channelList"></div>
+    </aside>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -186,7 +185,7 @@
 (function(){
 "use strict";
 var $=function(s){return document.querySelector(s)};
-var video=$('#video'), listEl=$('#channelList'), groupsEl=$('#groups'), countEl=$('#count');
+var video=$('#video'), listEl=$('#channelList'), countEl=$('#count');
 var channels=[], current=null, hls=null, epg={}, activeGroup='All', query='';
 var favs=new Set(JSON.parse(localStorage.getItem('riptv_favs')||'[]'));
 var recents=JSON.parse(localStorage.getItem('riptv_recents')||'[]');
@@ -223,7 +222,7 @@ function setChannels(list, sourceLabel){
   activeGroup='All'; query=''; $('#search').value='';
   if(!channels.length){ toast('No channels found in that playlist.'); }
   else toast('Loaded '+channels.length+' channels'+(sourceLabel?' from '+sourceLabel:'')+'.');
-  renderGroups(); renderList(); renderRecents();
+  renderList(); renderRecents();
 }
 function loadPlaylistUrl(url,label,fallbacks){
   if(!url) return;
@@ -276,20 +275,6 @@ function nowNext(id){
 function fmtTime(d){ return d? d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : ''; }
 
 /* ---------------- rendering ---------------- */
-function groupNames(){
-  var seen={}, names=[];
-  channels.forEach(function(c){ if(!seen[c.group]){ seen[c.group]=1; names.push(c.group); } });
-  return names.sort();
-}
-function renderGroups(){
-  var names=['All','★ Favourites'].concat(groupNames());
-  groupsEl.innerHTML=names.map(function(g){
-    return '<span class="chip'+(activeGroup===g?' on':'')+'" data-g="'+esc(g)+'">'+esc(g)+'</span>';
-  }).join('');
-  Array.prototype.forEach.call(groupsEl.querySelectorAll('.chip'),function(chip){
-    chip.addEventListener('click',function(){ activeGroup=chip.getAttribute('data-g'); renderGroups(); renderList(); });
-  });
-}
 function filtered(){
   return channels.filter(function(c){
     if(activeGroup==='★ Favourites' && !favs.has(c.url)) return false;
@@ -300,12 +285,8 @@ function filtered(){
 }
 var RENDER_STEP=400, renderedCount=0, currentItems=[];
 function rowHTML(c){
-  var nn=c.id?nowNext(c.id):null;
-  var sub=nn&&nn.now?('Now: '+nn.now.title):c.group;
   return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
-    +(c.logo?'<img loading="lazy" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
-    +'<span class="meta"><span class="name">'+esc(c.name)+'</span><br><span class="sub">'+esc(sub)+'</span></span>'
-    +'<span class="star'+(favs.has(c.url)?' on':'')+'" data-star="'+esc(c.url)+'">★</span></button>';
+    +'<span class="meta"><span class="name">'+esc(c.name)+'</span></span></button>';
 }
 function attachRowHandlers(){
   Array.prototype.forEach.call(listEl.querySelectorAll('.ch'),function(btn){
@@ -455,7 +436,7 @@ if(savedUrl){ $('#playlistUrl').value=savedUrl; loadPlaylistUrl(savedUrl); }
 else { $('#playlistUrl').value=DEFAULT_URL; loadPlaylistUrl(DEFAULT_URL,'iptv-org'); }
 var savedEpg=localStorage.getItem('riptv_epg_url');
 if(savedEpg){ $('#epgUrl').value=savedEpg; loadEpgUrl(savedEpg); }
-renderGroups(); renderList(); renderRecents();
+renderList(); renderRecents();
 })();
 </script>
 </body>
