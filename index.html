@@ -192,6 +192,7 @@ var favs=new Set(JSON.parse(localStorage.getItem('riptv_favs')||'[]'));
 var recents=JSON.parse(localStorage.getItem('riptv_recents')||'[]');
 var toastTimer=null;
 var DEFAULT_URL='https://iptv-org.github.io/iptv/index.m3u';
+var MIRROR_URL='https://cdn.jsdelivr.net/gh/iptv-org/iptv@gh-pages/index.m3u';
 function toast(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show')},3600); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]}); }
 
@@ -222,12 +223,20 @@ function setChannels(list, sourceLabel){
   else toast('Loaded '+channels.length+' channels'+(sourceLabel?' from '+sourceLabel:'')+'.');
   renderGroups(); renderList(); renderRecents();
 }
-function loadPlaylistUrl(url,label){
+function loadPlaylistUrl(url,label,fallbacks){
   if(!url) return;
+  if(url===DEFAULT_URL && !fallbacks) fallbacks=[MIRROR_URL];
+  var chain=[url].concat(fallbacks||[]);
   toast('Loading playlist…');
-  fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-    .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),label||'link'); })
-    .catch(function(){ toast('Could not load that playlist link — the provider may be blocking browser access (CORS). Try opening the M3U file instead.'); });
+  var attempt=function(i){
+    fetch(chain[i]).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+      .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),label||'link'); })
+      .catch(function(){
+        if(i+1<chain.length){ attempt(i+1); }
+        else toast('Could not load that playlist link — the provider may be blocking browser access (CORS). Try opening the M3U file instead.');
+      });
+  };
+  attempt(0);
 }
 
 /* ---------------- EPG (XMLTV) ---------------- */
