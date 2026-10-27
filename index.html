@@ -202,9 +202,11 @@ function parseM3U(text){
   for(var i=0;i<lines.length;i++){
     var t=lines[i].trim();
     if(t.indexOf('#EXTINF')===0){
-      var comma=t.indexOf(',');
+      var rest=t.replace(/^#EXTINF:-?\d+\s*/,''), am;
+      while((am=rest.match(/^[A-Za-z0-9_-]+="[^"]*"\s*/))){ rest=rest.slice(am[0].length); }
+      if(rest.charAt(0)===',') rest=rest.slice(1);
       meta={
-        name:(comma>-1?t.slice(comma+1):'Channel').trim()||'Channel',
+        name:rest.trim()||'Channel',
         logo:(t.match(/tvg-logo="([^"]*)"/)||[])[1]||'',
         group:(t.match(/group-title="([^"]*)"/)||[])[1]||'Other',
         id:(t.match(/tvg-id="([^"]*)"/)||[])[1]||''
