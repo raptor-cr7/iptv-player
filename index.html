@@ -143,6 +143,7 @@
       <div class="rowbtns">
         <label class="btn filebtn">Open M3U file<input type="file" id="fileInput" accept=".m3u,.m3u8,.txt"></label>
         <button class="btn" id="demoBtn" type="button">Demo channels</button>
+        <button class="btn" id="allBtn" type="button">All channels (iptv-org)</button>
       </div>
       <h3>TV Guide (EPG)</h3>
       <div class="field">
@@ -190,6 +191,7 @@ var channels=[], current=null, hls=null, epg={}, activeGroup='All', query='';
 var favs=new Set(JSON.parse(localStorage.getItem('riptv_favs')||'[]'));
 var recents=JSON.parse(localStorage.getItem('riptv_recents')||'[]');
 var toastTimer=null;
+var DEFAULT_URL='https://iptv-org.github.io/iptv/index.m3u';
 function toast(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show')},3600); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]}); }
 
@@ -220,11 +222,11 @@ function setChannels(list, sourceLabel){
   else toast('Loaded '+channels.length+' channels'+(sourceLabel?' from '+sourceLabel:'')+'.');
   renderGroups(); renderList(); renderRecents();
 }
-function loadPlaylistUrl(url){
+function loadPlaylistUrl(url,label){
   if(!url) return;
   toast('Loading playlist…');
   fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-    .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),'link'); })
+    .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),label||'link'); })
     .catch(function(){ toast('Could not load that playlist link — the provider may be blocking browser access (CORS). Try opening the M3U file instead.'); });
 }
 
@@ -250,7 +252,7 @@ function loadEpgUrl(url){
       }
       Object.keys(epg).forEach(function(k){ epg[k].sort(function(a,b){return a.start-b.start}); });
       localStorage.setItem('riptv_epg_url', url);
-      toast('TV guide loaded.'); renderList(); updateNowBar();
+      toast('TV guide loaded.'); renderList(true); updateNowBar();
     })
     .catch(function(){ toast('Could not load that EPG link (it may be blocked by CORS).'); });
 }
@@ -285,20 +287,18 @@ function filtered(){
     return true;
   });
 }
-function renderList(){
-  var items=filtered(), MAX=1000, show=items.slice(0,MAX);
-  countEl.innerHTML='Showing <b>'+show.length+'</b> of <b>'+items.length+'</b> channels · <b>'+channels.length+'</b> total';
-  if(!channels.length){ listEl.innerHTML='<div class="empty">No playlist loaded yet.<br>Paste an M3U link above, open an M3U file,<br>or try the demo channels.</div>'; return; }
-  if(!show.length){ listEl.innerHTML='<div class="empty">No channels match.</div>'; return; }
-  listEl.innerHTML=show.map(function(c){
-    var nn=c.id?nowNext(c.id):null;
-    var sub=nn&&nn.now?('Now: '+nn.now.title):c.group;
-    return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
-      +(c.logo?'<img loading="lazy" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
-      +'<span class="meta"><span class="name">'+esc(c.name)+'</span><br><span class="sub">'+esc(sub)+'</span></span>'
-      +'<span class="star'+(favs.has(c.url)?' on':'')+'" data-star="'+esc(c.url)+'">★</span></button>';
-  }).join('');
+var RENDER_STEP=400, renderedCount=0, currentItems=[];
+function rowHTML(c){
+  var nn=c.id?nowNext(c.id):null;
+  var sub=nn&&nn.now?('Now: '+nn.now.title):c.group;
+  return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
+    +(c.logo?'<img loading="lazy" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
+    +'<span class="meta"><span class="name">'+esc(c.name)+'</span><br><span class="sub">'+esc(sub)+'</span></span>'
+    +'<span class="star'+(favs.has(c.url)?' on':'')+'" data-star="'+esc(c.url)+'">★</span></button>';
+}
+function attachRowHandlers(){
   Array.prototype.forEach.call(listEl.querySelectorAll('.ch'),function(btn){
+    if(btn._bound) return; btn._bound=1;
     btn.addEventListener('click',function(e){
       var url=btn.getAttribute('data-url');
       var ch=channels.filter(function(c){return c.url===url})[0];
@@ -306,6 +306,36 @@ function renderList(){
       if(ch) play(ch);
     });
   });
+}
+function updateCount(){
+  countEl.innerHTML='Showing <b>'+renderedCount+'</b> of <b>'+currentItems.length+'</b> channels · <b>'+channels.length+'</b> total';
+  var mb=document.getElementById('moreBtn');
+  if(mb) mb.style.display=renderedCount<currentItems.length?'':'none';
+}
+function appendBatch(){
+  if(!channels.length) return;
+  var slice=currentItems.slice(renderedCount, renderedCount+RENDER_STEP);
+  if(!slice.length){ updateCount(); return; }
+  var mb=document.getElementById('moreBtn');
+  if(mb) mb.insertAdjacentHTML('beforebegin', slice.map(rowHTML).join(''));
+  else listEl.insertAdjacentHTML('beforeend', slice.map(rowHTML).join(''));
+  renderedCount+=slice.length;
+  attachRowHandlers();
+  updateCount();
+}
+function renderList(keep){
+  var st=listEl.scrollTop, prevRendered=renderedCount;
+  currentItems=filtered();
+  if(!channels.length){ renderedCount=0; countEl.innerHTML=''; listEl.innerHTML='<div class="empty">Loading the full channel list…<br>Or paste an M3U link above, open an M3U file,<br>or try the demo channels.</div>'; return; }
+  if(!currentItems.length){ renderedCount=0; listEl.innerHTML='<div class="empty">No channels match.</div>'; updateCount(); return; }
+  listEl.innerHTML='<button type="button" class="btn" id="moreBtn" style="width:100%;margin:4px 0 10px">Show more channels</button>';
+  renderedCount=0;
+  var target=keep?Math.max(RENDER_STEP, Math.min(prevRendered, currentItems.length)):RENDER_STEP;
+  while(renderedCount<target) appendBatch();
+  var mb=document.getElementById('moreBtn');
+  if(mb) mb.addEventListener('click',function(){ appendBatch(); });
+  if(keep) listEl.scrollTop=st;
+  updateCount();
 }
 function renderRecents(){
   var box=$('#recentBox'), wrap=$('#recentItems');
@@ -327,7 +357,7 @@ function toggleFav(ch){
   if(!ch) return;
   if(favs.has(ch.url)){ favs.delete(ch.url); toast('Removed from favourites.'); }
   else { favs.add(ch.url); toast('Added to favourites.'); }
-  saveFavs(); renderList(); updateNowBar();
+  saveFavs(); renderList(true); updateNowBar();
 }
 
 /* ---------------- playback ---------------- */
@@ -356,7 +386,7 @@ function play(ch){
   }
   recents=[{name:ch.name,logo:ch.logo,group:ch.group,id:ch.id,url:ch.url}].concat(recents.filter(function(r){return r.url!==ch.url})).slice(0,12);
   localStorage.setItem('riptv_recents', JSON.stringify(recents));
-  renderRecents(); renderList(); updateNowBar();
+  renderRecents(); renderList(true); updateNowBar();
 }
 function updateNowBar(){
   var logo=$('#nowLogo');
@@ -386,6 +416,8 @@ $('#loadUrlBtn').addEventListener('click',function(){ loadPlaylistUrl($('#playli
 $('#playlistUrl').addEventListener('keydown',function(e){ if(e.key==='Enter') loadPlaylistUrl(e.target.value.trim()); });
 $('#loadEpgBtn').addEventListener('click',function(){ loadEpgUrl($('#epgUrl').value.trim()); });
 $('#demoBtn').addEventListener('click',function(){ setChannels(DEMO.slice(),'demo'); play(DEMO[0]); });
+$('#allBtn').addEventListener('click',function(){ $('#playlistUrl').value=DEFAULT_URL; loadPlaylistUrl(DEFAULT_URL,'iptv-org'); });
+listEl.addEventListener('scroll',function(){ if(listEl.scrollTop+listEl.clientHeight>=listEl.scrollHeight-500) appendBatch(); });
 $('#fileInput').addEventListener('change',function(e){
   var f=e.target.files[0]; if(!f) return;
   var r=new FileReader();
@@ -409,6 +441,7 @@ document.addEventListener('keydown',function(e){
 /* ---------------- init ---------------- */
 var savedUrl=localStorage.getItem('riptv_playlist_url');
 if(savedUrl){ $('#playlistUrl').value=savedUrl; loadPlaylistUrl(savedUrl); }
+else { $('#playlistUrl').value=DEFAULT_URL; loadPlaylistUrl(DEFAULT_URL,'iptv-org'); }
 var savedEpg=localStorage.getItem('riptv_epg_url');
 if(savedEpg){ $('#epgUrl').value=savedEpg; loadEpgUrl(savedEpg); }
 renderGroups(); renderList(); renderRecents();
