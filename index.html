@@ -286,6 +286,7 @@ function filtered(){
 var RENDER_STEP=400, renderedCount=0, currentItems=[];
 function rowHTML(c){
   return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
+    +(c.logo?'<img loading="lazy" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
     +'<span class="meta"><span class="name">'+esc(c.name)+'</span></span></button>';
 }
 function attachRowHandlers(){
