@@ -121,11 +121,31 @@
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---------- dark & light mode ---------- */
+  body.dark{--bg:#000000;--ink:#ffffff;--mut:#a3a3a3;--glass:rgba(255,255,255,.07);--line:rgba(255,255,255,.12)}
+  body.dark::before{background:rgba(255,255,255,.09)}
+  body.dark::after{background:rgba(255,255,255,.05)}
+  body.dark .glass{background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03));box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06)}
+  body.dark .field input[type=url],body.dark .field input[type=text],body.dark input[type=search],body.dark .btn,body.dark .chip,body.dark .ch,body.dark .nowbar select{background:rgba(255,255,255,.06);color:#ffffff;border-color:rgba(255,255,255,.12)}
+  body.dark .btn.primary{background:#ffffff;color:#000000;border-color:#ffffff}
+  body.dark .chip.on{background:#ffffff;color:#000000;border-color:#ffffff}
+  body.dark .ch:hover{background:rgba(255,255,255,.10)}
+  body.dark .ch.active{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.7)}
+  body.dark .ch .ph{background:rgba(255,255,255,.08)}
+  body.dark .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14)}
+
+  .settings-row{width:100%;display:flex;justify-content:flex-start}
+  .settings-panel{display:none;width:100%;padding:14px 16px;margin-top:4px}
+  .settings-panel.open{display:block}
+  .settings-panel h4{margin:0 0 10px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar glass">
+    <div class="settings-row"><button class="btn" id="settingsBtn" type="button">⚙️ Settings</button></div>
+    <div class="settings-panel glass" id="settingsPanel"><h4>Settings</h4><button class="btn" id="themeBtn" type="button">🌙 Dark mode</button></div>
     <div class="logo">RAPTOR <b>IPTV</b><small>Advanced Web Player</small></div>
     <div class="header-ig"><a href="https://www.instagram.com/raptor.cr7" target="_blank" rel="noopener">@raptor.cr7</a><a class="btn primary" href="https://www.instagram.com/raptor.cr7" target="_blank" rel="noopener">Follow</a></div>
   </header>
@@ -453,6 +473,27 @@ document.addEventListener('keydown',function(e){
   if(e.key==='f'){ if(video.requestFullscreen) video.requestFullscreen(); }
   if(e.key==='m'){ video.muted=!video.muted; }
 });
+
+
+
+  var sb=document.getElementById('settingsBtn'), sp=document.getElementById('settingsPanel');
+  if(sb && sp){ sb.addEventListener('click',function(){ sp.classList.toggle('open'); }); }
+
+/* ---------------- dark / light mode ---------------- */
+(function(){
+  var btn=document.getElementById('themeBtn'); if(!btn) return;
+  function apply(dark){
+    document.body.classList.toggle('dark', dark);
+    btn.textContent=dark?'☀️ Light mode':'🌙 Dark mode';
+  }
+  var saved=null; try{saved=localStorage.getItem('riptv_theme');}catch(e){}
+  apply(saved==='dark');
+  btn.addEventListener('click',function(){
+    var dark=!document.body.classList.contains('dark');
+    apply(dark);
+    try{localStorage.setItem('riptv_theme', dark?'dark':'light');}catch(e){}
+  });
+})();
 
 /* ---------------- init ---------------- */
 var savedUrl=localStorage.getItem('riptv_playlist_url');
