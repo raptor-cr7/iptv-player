@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAPTOR IPTV — Advanced Web Player</title>
 <meta name="description" content="Advanced IPTV web player. Load your own M3U playlist and watch in a modern liquid-glass interface.">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
 <style>
   :root{
-    --bg:#050507; --ink:#f4f4f6; --mut:#9a9aa5; --red:#e8362d;
+    --bg:#000000; --ink:#ffffff; --mut:#a3a3a3; --red:#ffffff;
     --glass:rgba(255,255,255,.045); --glass2:rgba(255,255,255,.07);
     --line:rgba(255,255,255,.09); --rad:20px;
   }
@@ -22,11 +23,11 @@
   body::before,body::after{
     content:""; position:fixed; border-radius:50%; filter:blur(110px); z-index:0; pointer-events:none;
   }
-  body::before{width:560px;height:560px;background:rgba(232,54,45,.16);top:-180px;right:-120px}
-  body::after{width:520px;height:520px;background:rgba(38,84,220,.14);bottom:-200px;left:-140px}
+  body::before{width:560px;height:560px;background:rgba(255,255,255,.09);top:-180px;right:-120px}
+  body::after{width:520px;height:520px;background:rgba(255,255,255,.05);bottom:-200px;left:-140px}
   .glass{
-    background:var(--glass); border:1px solid var(--line); border-radius:var(--rad);
-    backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
+    background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.14); border-radius:var(--rad);
+    backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%);
     box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
   }
   .wrap{max-width:1440px;margin:0 auto;padding:18px clamp(12px,3vw,28px) 30px;position:relative;z-index:1}
@@ -37,7 +38,7 @@
   .logo small{display:block;font-weight:600;font-size:11px;color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
   .topbar .sp{flex:1}
   .badge{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.03)}
-  .badge .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3ddc74;margin-right:7px;box-shadow:0 0 10px #3ddc74}
+  .badge .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffffff;margin-right:7px;box-shadow:0 0 10px rgba(255,255,255,.6)}
   /* ---------- layout ---------- */
   .layout{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
   @media (max-width:960px){.layout{grid-template-columns:1fr}}
@@ -50,14 +51,14 @@
     flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;
     color:var(--ink);padding:10px 12px;font-size:13.5px;outline:none;
   }
-  .field input:focus,input[type=search]:focus{border-color:rgba(232,54,45,.55)}
+  .field input:focus,input[type=search]:focus{border-color:rgba(255,255,255,.6)}
   .btn{
     background:var(--glass2);border:1px solid var(--line);color:var(--ink);border-radius:12px;
     padding:10px 14px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;
   }
   .btn:hover{border-color:rgba(255,255,255,.25)}
-  .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
-  .btn.primary:hover{background:#f04438}
+  .btn.primary{background:#ffffff;border-color:#ffffff;color:#000000}
+  .btn.primary:hover{background:#e5e5e5}
   .rowbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .rowbtns .btn{flex:1}
   label.filebtn{display:inline-block;text-align:center}
@@ -71,7 +72,7 @@
     background:rgba(255,255,255,.03);color:var(--mut);cursor:pointer;user-select:none;
   }
   .chip:hover{color:var(--ink)}
-  .chip.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+  .chip.on{background:#ffffff;border-color:#ffffff;color:#000000;font-weight:700}
   /* channel list */
   .list{overflow-y:auto;flex:1;min-height:120px;padding-right:2px}
   .list::-webkit-scrollbar{width:8px}
@@ -82,14 +83,14 @@
     content-visibility:auto;contain-intrinsic-size:auto 60px;
   }
   .ch:hover{background:rgba(255,255,255,.07)}
-  .ch.active{border-color:rgba(232,54,45,.65);background:rgba(232,54,45,.10)}
+  .ch.active{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.10)}
   .ch img{width:42px;height:42px;object-fit:contain;border-radius:9px;background:rgba(0,0,0,.35);flex:none}
   .ch .ph{width:42px;height:42px;border-radius:9px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--mut);flex:none}
   .ch .meta{min-width:0;flex:1}
   .ch .name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ch .sub{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ch .star{flex:none;font-size:17px;background:none;border:0;color:#5c5c66;cursor:pointer;padding:4px}
-  .ch .star.on{color:#ffb400}
+  .ch .star.on{color:#ffffff}
   .empty{color:var(--mut);font-size:13.5px;text-align:center;padding:26px 10px;line-height:1.55}
   /* ---------- stage ---------- */
   .stage{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -110,7 +111,7 @@
   .nowbar select{
     background:rgba(0,0,0,.35);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13px;
   }
-  .favbtn.on{color:#ffb400;border-color:rgba(255,180,0,.5)}
+  .favbtn.on{color:#ffffff;border-color:rgba(255,255,255,.6)}
   .recent{padding:14px 18px}
   .recent h3{margin:0 0 10px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
   .recent .items{display:flex;gap:8px;flex-wrap:wrap}
@@ -198,18 +199,23 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){retu
 
 /* ---------------- playlist parsing ---------------- */
 function parseM3U(text){
+  // Fast path: one indexOf lookup per attribute, no regex per line.
+  function attr(line, key){
+    var k=key+'="', i=line.indexOf(k);
+    if(i<0) return '';
+    var j=line.indexOf('"', i+k.length);
+    return j<0?'':line.slice(i+k.length, j);
+  }
   var lines=String(text).split(/\r?\n/), out=[], meta=null;
   for(var i=0;i<lines.length;i++){
     var t=lines[i].trim();
     if(t.indexOf('#EXTINF')===0){
-      var rest=t.replace(/^#EXTINF:-?\d+\s*/,''), am;
-      while((am=rest.match(/^[A-Za-z0-9_-]+="[^"]*"\s*/))){ rest=rest.slice(am[0].length); }
-      if(rest.charAt(0)===',') rest=rest.slice(1);
+      var comma=t.lastIndexOf(',');
       meta={
-        name:rest.trim()||'Channel',
-        logo:(t.match(/tvg-logo="([^"]*)"/)||[])[1]||'',
-        group:(t.match(/group-title="([^"]*)"/)||[])[1]||'Other',
-        id:(t.match(/tvg-id="([^"]*)"/)||[])[1]||''
+        name:(comma>0?t.slice(comma+1).trim():'')||'Channel',
+        logo:attr(t,'tvg-logo'),
+        group:attr(t,'group-title')||'Other',
+        id:attr(t,'tvg-id')
       };
     } else if(t && t.charAt(0)!=='#'){
       if(meta){ meta.url=t; out.push(meta); meta=null; }
@@ -287,7 +293,7 @@ function filtered(){
     return true;
   });
 }
-var RENDER_STEP=150, renderedCount=0, currentItems=[];
+var RENDER_STEP=100, renderedCount=0, currentItems=[];
 function rowHTML(c){
   return '<button type="button" class="ch'+(current&&current.url===c.url?' active':'')+'" data-url="'+esc(c.url)+'">'
     +(c.logo?'<img loading="lazy" decoding="async" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
