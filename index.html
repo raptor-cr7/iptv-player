@@ -265,7 +265,7 @@ function loadPlaylistUrl(url,label,fallbacks){
   toast('Loading playlist…');
   var attempt=function(i){
     fetch(chain[i]).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-      .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),label||'link'); autoplayTries=0; playRandom(); })
+      .then(function(txt){ localStorage.setItem('riptv_playlist_url', url); setChannels(parseM3U(txt),label||'link'); autoplayTries=0; playDefaultChannel(); })
       .catch(function(){
         if(i+1<chain.length){ attempt(i+1); }
         else toast('Could not load that playlist link — the provider may be blocking browser access (CORS). Try opening the M3U file instead.');
@@ -393,6 +393,22 @@ function buildQuality(){
   sel.style.display='';
 }
 var autoplayTries=0;
+
+function playDefaultChannel(){
+  var ch=null;
+  for(var i=0;i<channels.length;i++){
+    var n=(channels[i].name||'').toLowerCase();
+    if(n.indexOf('asianet hd')!==-1){ ch=channels[i]; break; }
+  }
+  if(!ch){
+    for(var j=0;j<channels.length;j++){
+      var m=(channels[j].name||'').toLowerCase();
+      if(m.indexOf('asianet')!==-1){ ch=channels[j]; break; }
+    }
+  }
+  if(ch) play(ch, true); else playRandom();
+}
+
 function playRandom(){
   var pool=channels.filter(function(c){ return /^https:/i.test(c.url) && /\.m3u8($|\?)/i.test(c.url); });
   if(!pool.length) pool=channels.slice();
