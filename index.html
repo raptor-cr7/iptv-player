@@ -219,14 +219,44 @@ function parseM3U(text){
   }
   return out;
 }
+
+/* ---------------- Malayalam first ---------------- */
+var MAL_URL='https://iptv-org.github.io/iptv/languages/mal.m3u';
+var malUrls=new Set();
+var MAL_NAMES=['malayalam','asianet','amrita','mazhavil','surya','flowers','kairali','manorama','mathrubhumi','jaihind','janam','mediaone','reporter','24 news','news18 kerala','kerala','kairali','safari tv','goodness','shri','harvest'];
+function isMalayalam(c){
+  if(malUrls.has(c.url)) return true;
+  var n=(c.name||'').toLowerCase(), id=(c.id||'').toLowerCase();
+  if(/[\u0D00-\u0D7F]/.test(c.name||'')) return true;
+  for(var i=0;i<MAL_NAMES.length;i++){ if(n.indexOf(MAL_NAMES[i])!==-1 || id.indexOf(MAL_NAMES[i])!==-1) return true; }
+  return false;
+}
+function sortMalayalamFirst(){
+  var mal=[], rest=[];
+  channels.forEach(function(c){ (isMalayalam(c)?mal:rest).push(c); });
+  if(mal.length && mal.length<channels.length){ channels=mal.concat(rest); }
+}
+function boostMalayalam(){
+  // Use the official Malayalam playlist as the exact Malayalam set, then re-sort.
+  fetch(MAL_URL).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .then(function(txt){
+      parseM3U(txt).forEach(function(c){ malUrls.add(c.url); });
+      var before=channels.length;
+      sortMalayalamFirst();
+      if(channels.length) renderList();
+    }).catch(function(){});
+}
+
 function setChannels(list, sourceLabel){
   channels=list;
+  sortMalayalamFirst();
   byUrl={};
   channels.forEach(function(c){ c._n=c.name.toLowerCase(); if(!byUrl[c.url]) byUrl[c.url]=c; });
   activeGroup='All'; query=''; $('#search').value='';
   if(!channels.length){ toast('No channels found in that playlist.'); }
   else toast('Loaded '+channels.length+' channels'+(sourceLabel?' from '+sourceLabel:'')+'.');
   renderList(); renderRecents();
+  if(channels.length>20) boostMalayalam();
 }
 function loadPlaylistUrl(url,label,fallbacks){
   if(!url) return;
