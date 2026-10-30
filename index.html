@@ -11,6 +11,7 @@
 <meta name="description" content="Advanced IPTV web player. Load your own M3U playlist and watch in a modern liquid-glass interface.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <style>
   :root{
     --bg:#f6f6f4;
@@ -210,6 +211,17 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   @media (max-width:640px){.topbar{top:8px;padding:12px;margin-bottom:14px;border-radius:18px}.logo .brand-text{font-size:24px}.brand-mark{width:44px;height:44px;border-radius:13px}}
+
+  .grp{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--surface-2);border:1px solid var(--glass-border);border-radius:999px;padding:7px 14px;margin:14px 0 10px;display:inline-block}
+  .grp:first-child{margin-top:0}
+  .popup{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:20px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .popup.hide{display:none}
+  .popup-card{position:relative;background:var(--surface-solid);color:var(--ink);border:1px solid var(--glass-border);border-radius:22px;box-shadow:var(--glass-shadow);padding:28px 24px 24px;text-align:center;max-width:420px;width:100%}
+  .popup-card h2{margin:0 0 8px;font-size:22px;font-weight:800}
+  .popup-card p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.6}
+  .popup-close{position:absolute;top:10px;right:12px;border:0;background:var(--surface-2);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}
+  google-cast-launcher{width:38px;height:38px;flex:none;cursor:pointer;--connected-color:#ffffff;--disconnected-color:#ffffff}
+  .cast-note{font-size:12px;color:#9c9c9c}
 </style>
 </head>
 <body>
@@ -234,6 +246,7 @@
           <div class="epg" id="nowEpg">Your playlist link stays in your browser only — it is never uploaded anywhere.</div>
         </div>
         <select id="quality" title="Quality" style="display:none"></select>
+        <google-cast-launcher id="castBtn" title="Cast to TV"></google-cast-launcher>
         <button class="btn" id="pipBtn" type="button">Picture in picture</button>
         <button class="btn favbtn" id="favBtn" type="button">☆ Favourite</button>
       </div>
@@ -266,6 +279,7 @@
     </aside>
   </div>
 </div>
+<div class="popup" id="loadPopup"><div class="popup-card"><button class="popup-close" id="popupClose" type="button" aria-label="Close">×</button><h2>Please Wait</h2><p>Please Wait For Channels Fully Loading</p></div></div>
 <div class="toast" id="toast"></div>
 <script>
 (function(){
@@ -324,6 +338,20 @@ function sortMalayalamFirst(){
   var mal=[], rest=[];
   channels.forEach(function(c){ (isMalayalam(c)?mal:rest).push(c); });
   if(mal.length && mal.length<channels.length){ channels=mal.concat(rest); }
+}
+
+/* ---------------- channel categories (in this order) ---------------- */
+var CAT_ORDER=['Malayalam','Tamil','Hindi','Sports','Movies','Music','News','Others'];
+function channelCategory(c){
+  if(isMalayalam(c)) return 'Malayalam';
+  var n=(c.name||'').toLowerCase(), g=(c.group||'').toLowerCase(), all=n+' '+g;
+  if(/[\u0B80-\u0BFF]/.test(c.name||'') || n.indexOf('tamil')!==-1 || g.indexOf('tamil')!==-1) return 'Tamil';
+  if(/[\u0900-\u097F]/.test(c.name||'') || n.indexOf('hindi')!==-1 || g.indexOf('hindi')!==-1) return 'Hindi';
+  if(/(sport|cricket|football|espn|bein|sky sport|star sport|sony sport|ten sport)/.test(all)) return 'Sports';
+  if(/(movie|cinema|film)/.test(all)) return 'Movies';
+  if(/(music|mtv|vh1|song)/.test(all)) return 'Music';
+  if(/(news)/.test(all)) return 'News';
+  return 'Others';
 }
 function boostMalayalam(){
   // Use the official Malayalam playlist as the exact Malayalam set, then re-sort.
@@ -413,18 +441,32 @@ function rowHTML(c){
     +(c.logo?'<img loading="lazy" decoding="async" src="'+esc(c.logo)+'" alt="" onerror="this.style.display=\'none\'">':'<span class="ph">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
     +'<span class="meta"><span class="name">'+esc(c.name)+'</span></span></button>';
 }
+var groupedItems=[];
+function buildGrouped(){
+  groupedItems=[];
+  CAT_ORDER.forEach(function(cat){
+    var arr=currentItems.filter(function(c){ return channelCategory(c)===cat; });
+    if(!arr.length) return;
+    groupedItems.push({head:cat});
+    arr.forEach(function(c){ groupedItems.push({ch:c}); });
+  });
+}
+function renderedChannelCount(){
+  return groupedItems.slice(0,renderedCount).filter(function(it){ return !!it.ch; }).length;
+}
 function updateCount(){
-  countEl.innerHTML='Showing <b>'+renderedCount+'</b> of <b>'+currentItems.length+'</b> channels · <b>'+channels.length+'</b> total';
+  countEl.innerHTML='Showing <b>'+renderedChannelCount()+'</b> of <b>'+currentItems.length+'</b> channels · <b>'+channels.length+'</b> total';
   var mb=document.getElementById('moreBtn');
-  if(mb) mb.style.display=renderedCount<currentItems.length?'':'none';
+  if(mb) mb.style.display=renderedCount<groupedItems.length?'':'none';
 }
 function appendBatch(){
   if(!channels.length) return;
-  var slice=currentItems.slice(renderedCount, renderedCount+RENDER_STEP);
+  var slice=groupedItems.slice(renderedCount, renderedCount+RENDER_STEP);
   if(!slice.length){ updateCount(); return; }
+  var html=slice.map(function(it){ return it.head?'<div class="grp">'+esc(it.head)+'</div>':rowHTML(it.ch); }).join('');
   var mb=document.getElementById('moreBtn');
-  if(mb) mb.insertAdjacentHTML('beforebegin', slice.map(rowHTML).join(''));
-  else listEl.insertAdjacentHTML('beforeend', slice.map(rowHTML).join(''));
+  if(mb) mb.insertAdjacentHTML('beforebegin', html);
+  else listEl.insertAdjacentHTML('beforeend', html);
   renderedCount+=slice.length;
   updateCount();
 }
@@ -442,8 +484,9 @@ function renderList(keep){
   if(!channels.length){ renderedCount=0; countEl.innerHTML=''; listEl.innerHTML='<div class="empty">Loading the full channel list…<br>Or paste an M3U link above, open an M3U file,<br>or try the demo channels.</div>'; return; }
   if(!currentItems.length){ renderedCount=0; listEl.innerHTML='<div class="empty">No channels match.</div>'; updateCount(); return; }
   listEl.innerHTML='<button type="button" class="btn" id="moreBtn" style="width:100%;margin:4px 0 10px">Show more channels</button>';
+  buildGrouped();
   renderedCount=0;
-  var target=keep?Math.max(RENDER_STEP, Math.min(prevRendered, currentItems.length)):RENDER_STEP;
+  var target=keep?Math.max(RENDER_STEP, Math.min(prevRendered, groupedItems.length)):RENDER_STEP;
   while(renderedCount<target) appendBatch();
   var mb=document.getElementById('moreBtn');
   if(mb) mb.addEventListener('click',function(){ appendBatch(); });
@@ -523,7 +566,7 @@ function play(ch,auto){
   }
   recents=[{name:ch.name,logo:ch.logo,group:ch.group,id:ch.id,url:ch.url}].concat(recents.filter(function(r){return r.url!==ch.url})).slice(0,12);
   localStorage.setItem('riptv_recents', JSON.stringify(recents));
-  renderRecents(); markActive(); updateNowBar();
+  renderRecents(); markActive(); updateNowBar(); castCurrent();
 }
 function updateNowBar(){
   var logo=$('#nowLogo');
@@ -540,6 +583,32 @@ function updateNowBar(){
   fb.classList.toggle('on', favs.has(current.url));
 }
 
+
+/* ---------------- Chromecast ---------------- */
+function castCurrent(){
+  try{
+    if(typeof cast==='undefined' || !cast.framework) return;
+    var session=cast.framework.CastContext.getInstance().getCurrentSession();
+    if(!session || !current) return;
+    var src=current.url;
+    var mime=src.indexOf('.m3u8')!==-1?'application/x-mpegURL':'video/mp4';
+    var mediaInfo=new chrome.cast.media.MediaInfo(src, mime);
+    mediaInfo.metadata=new chrome.cast.media.GenericMediaMetadata();
+    mediaInfo.metadata.title=current.name;
+    session.loadMedia(new chrome.cast.media.LoadRequest(mediaInfo)).then(function(){ toast('Casting '+current.name+' to your TV.'); })
+      .catch(function(){ toast('Could not cast this stream — the provider may block it.'); });
+  }catch(e){}
+}
+window['__onGCastApiAvailable']=function(isAvailable){
+  if(!isAvailable) return;
+  try{
+    var ctx=cast.framework.CastContext.getInstance();
+    ctx.setOptions({receiverApplicationId:chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID, autoJoinPolicy:chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED});
+    ctx.addEventListener(cast.framework.CastContextEventType.SESSION_STATE_CHANGED, function(e){
+      if(e.sessionState===cast.framework.SessionState.SESSION_STARTED || e.sessionState===cast.framework.SessionState.SESSION_RESUMED) castCurrent();
+    });
+  }catch(e){}
+};
 /* ---------------- demo channels (public test streams) ---------------- */
 var DEMO=[
  {name:'Mux Test Stream',logo:'',group:'Demo',id:'',url:'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'},
@@ -595,6 +664,17 @@ if(savedUrl){ $('#playlistUrl').value=savedUrl; loadPlaylistUrl(savedUrl); }
 else { $('#playlistUrl').value=DEFAULT_URL; loadPlaylistUrl(DEFAULT_URL,'iptv-org'); }
 var savedEpg=localStorage.getItem('riptv_epg_url');
 if(savedEpg){ $('#epgUrl').value=savedEpg; loadEpgUrl(savedEpg); }
+
+/* ---------------- loading popup (5 seconds, closable) ---------------- */
+(function(){
+  var pop=document.getElementById('loadPopup');
+  if(!pop) return;
+  var closed=false;
+  function closePop(){ if(closed) return; closed=true; pop.classList.add('hide'); }
+  document.getElementById('popupClose').addEventListener('click', closePop);
+  pop.addEventListener('click', function(e){ if(e.target===pop) closePop(); });
+  setTimeout(closePop, 5000);
+})();
 renderList(); renderRecents();
 })();
 </script>
