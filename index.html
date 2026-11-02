@@ -14,9 +14,9 @@
 <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <style>
   :root{
-    --bg:#07130c;
+    --bg:#041009;
     --surface:rgba(255,255,255,.10);
-    --surface-solid:#0e1f14;
+    --surface-solid:#0a1f13;
     --surface-2:rgba(255,255,255,.08);
     --glass:rgba(255,255,255,.10);
     --glass-strong:rgba(255,255,255,.16);
@@ -25,17 +25,17 @@
     --ink-2:rgba(245,247,250,.85);
     --ink-3:rgba(245,247,250,.65);
     --line:rgba(255,255,255,.12);
-    --accent:#00e676;
-    --accent-2:#69f0ae;
-    --accent-strong:#00c853;
-    --accent-soft:rgba(0,230,118,.16);
+    --accent:#00c853;
+    --accent-2:#34c759;
+    --accent-strong:#009e4f;
+    --accent-soft:rgba(0,200,83,.18);
     --stage:#0a0a0a;
-    --chip:linear-gradient(135deg,#00b248,#00e676);
+    --chip:linear-gradient(135deg,#007a3d,#00c853);
     --chip-ink:#ffffff;
     --radius:20px;
     --shadow:0 18px 50px rgba(0,0,0,.45);
     --glass-shadow:0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
-    --mut:rgba(245,247,250,.65); --red:#00e676;
+    --mut:rgba(245,247,250,.65); --red:#00c853;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -50,11 +50,11 @@
     overflow-x:hidden;
   }
   /* Liquid background — WALLZA style */
-  .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(160deg, #07130c 0%, #0d2417 45%, #07130c 100%)}
+  .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(160deg, #041009 0%, #0a2e1a 45%, #041009 100%)}
   .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.75;animation:drift 18s ease-in-out infinite alternate}
-  .blob.b1{width:520px;height:520px;background:radial-gradient(circle, #00b248, transparent 65%);top:-140px;left:-120px}
-  .blob.b2{width:460px;height:460px;background:radial-gradient(circle, #00e676, transparent 65%);top:30%;right:-160px;animation-delay:-6s}
-  .blob.b3{width:420px;height:420px;background:radial-gradient(circle, #69f0ae, transparent 65%);bottom:-160px;left:28%;animation-delay:-12s}
+  .blob.b1{width:520px;height:520px;background:radial-gradient(circle, #007a3d, transparent 65%);top:-140px;left:-120px}
+  .blob.b2{width:460px;height:460px;background:radial-gradient(circle, #00a152, transparent 65%);top:30%;right:-160px;animation-delay:-6s}
+  .blob.b3{width:420px;height:420px;background:radial-gradient(circle, #1db954, transparent 65%);bottom:-160px;left:28%;animation-delay:-12s}
   @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,-30px) scale(1.08)}}
   button,input,select{font:inherit}
   a{color:var(--accent)}
@@ -80,7 +80,7 @@
   .logo{display:flex;align-items:center;gap:13px;min-width:0}
   .brand-mark{
     width:50px;height:50px;border-radius:16px;flex:none;
-    background:linear-gradient(135deg,#00b248,#00e676);
+    background:linear-gradient(135deg,#007a3d,#00c853);
     color:#ffffff;display:grid;place-items:center;font-size:22px;
     box-shadow:0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.55);
     border:1px solid rgba(255,255,255,.35);
@@ -104,7 +104,7 @@
     display:inline-flex;align-items:center;justify-content:center;gap:7px;
     color:#ffffff !important;text-decoration:none;font-size:13.5px;font-weight:700;
     padding:9px 18px;border-radius:999px;white-space:nowrap;
-    background:linear-gradient(135deg,#00b248,#00e676);
+    background:linear-gradient(135deg,#007a3d,#00c853);
     border:1px solid rgba(255,255,255,.35);
     box-shadow:0 8px 20px rgba(0,0,0,.22);
     position:relative;overflow:hidden;
@@ -115,7 +115,7 @@
   @keyframes btnShine{0%{left:-60%}60%,100%{left:130%}}
   .site-footer{display:flex;justify-content:center;margin:28px 0 6px}
   .topbar .sp{flex:1}
-  .badge{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;border-radius:999px;flex:none;background:linear-gradient(135deg,#00b248,#00e676);color:#ffffff}
+  .badge{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;border-radius:999px;flex:none;background:linear-gradient(135deg,#007a3d,#00c853);color:#ffffff}
   .badge .dot{display:none}
   .layout{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
   @media (max-width:960px){.layout{grid-template-columns:1fr}}
@@ -154,7 +154,7 @@
     font-size:13.5px;font-weight:600;cursor:pointer;user-select:none;
   }
   .chip:hover{color:var(--ink)}
-  .chip.on{background:var(--chip);color:var(--chip-ink);border-color:rgba(0,230,118,.65);font-weight:700}
+  .chip.on{background:var(--chip);color:var(--chip-ink);border-color:rgba(0,200,83,.65);font-weight:700}
   .list{overflow-y:auto;flex:1;min-height:120px;padding-right:2px}
   .list::-webkit-scrollbar{width:8px}
   .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:8px}
