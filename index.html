@@ -88,17 +88,22 @@
   .logo .brand-text{font-size:28px;font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase}
   .logo small{display:block;font-weight:500;font-size:12.5px;color:var(--ink-2);margin-top:4px;letter-spacing:.01em;text-transform:none}
   .header-ig{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;width:100%;margin-bottom:18px}
-  .ig-group{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-  .header-ig a.ig-name{display:inline-flex;align-items:center;gap:7px;color:var(--ink);font-size:14.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;text-decoration:none}
-  .header-ig a.ig-follow{
-    display:inline-flex;align-items:center;justify-content:center;
-    color:#ffffff !important;text-decoration:none;font-size:13.5px;font-weight:700;
-    padding:9px 18px;border-radius:999px;white-space:nowrap;
+  .ig{
+    display:inline-flex;align-items:center;gap:9px;
     background:linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     border:1px solid rgba(255,255,255,.35);
-    box-shadow:0 8px 20px rgba(0,0,0,.22);
+    color:#fff;text-decoration:none;
+    padding:9px 10px 9px 14px;border-radius:999px;font-size:14px;font-weight:600;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:0 6px 20px rgba(220, 39, 103, .45), inset 0 1px 0 rgba(255,255,255,.25);
+    transition:filter .2s ease, transform .2s ease;
   }
-  .header-ig a.ig-follow:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .ig:hover{filter:brightness(1.15);transform:translateY(-1px)}
+  .ig svg{display:block;flex-shrink:0}
+  .ig .follow{
+    background:#fff;color:#111;font-size:12px;font-weight:700;
+    padding:6px 13px;border-radius:999px;
+  }
   /* RAPTOR website button — same as WALLZA */
   .raptor-btn{
     display:inline-flex;align-items:center;justify-content:center;gap:7px;
@@ -222,7 +227,7 @@
   <header class="topbar glass">
     <div class="logo"><span class="brand-mark">▶</span><span><span class="brand-text">RAPTOR IPTV</span><small>Load a playlist and pick a channel to start watching.</small></span></div>
   </header>
-  <div class="header-ig"><a class="raptor-btn" href="https://raptor-cr7.github.io/" target="_blank" rel="noopener">🌐 Visit RAPTOR Website</a><span class="ig-group"><a class="ig-name" href="https://www.instagram.com/raptor.cr7" target="_blank" rel="noopener">@raptor.cr7</a><a class="ig-follow" href="https://www.instagram.com/raptor.cr7" target="_blank" rel="noopener">Follow</a></span></div>
+  <div class="header-ig"><a class="raptor-btn" href="https://raptor-cr7.github.io/" target="_blank" rel="noopener">🌐 Visit RAPTOR Website</a><a class="ig" href="https://www.instagram.com/raptor.cr7" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> @raptor.cr7 <span class="follow">Follow</span></a></div>
 
   <div class="layout">
     <section class="stage">
