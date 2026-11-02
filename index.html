@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark" />
+<meta name="color-scheme" content="dark" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -14,61 +14,33 @@
 <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <style>
   :root{
-    --bg:#f6f6f4;
-    --surface:rgba(255,255,255,.58);
-    --surface-solid:#ffffff;
-    --surface-2:rgba(255,255,255,.42);
-    --glass:rgba(255,255,255,.55);
-    --glass-strong:rgba(255,255,255,.72);
-    --glass-border:rgba(255,255,255,.65);
-    --ink:#111111;
-    --ink-2:#3d3d3d;
-    --ink-3:#737373;
-    --line:rgba(17,17,17,.10);
-    --accent:#111111;
-    --accent-2:#333333;
-    --accent-strong:#000000;
-    --accent-soft:rgba(0,0,0,.07);
+    --bg:#0a0a12;
+    --surface:rgba(255,255,255,.10);
+    --surface-solid:#14141f;
+    --surface-2:rgba(255,255,255,.08);
+    --glass:rgba(255,255,255,.10);
+    --glass-strong:rgba(255,255,255,.16);
+    --glass-border:rgba(255,255,255,.22);
+    --ink:#f5f7fa;
+    --ink-2:rgba(245,247,250,.85);
+    --ink-3:rgba(245,247,250,.65);
+    --line:rgba(255,255,255,.12);
+    --accent:#7c5cff;
+    --accent-2:#00b7ff;
+    --accent-strong:#7c5cff;
+    --accent-soft:rgba(124,92,255,.16);
     --stage:#0a0a0a;
-    --chip:#111111;
+    --chip:linear-gradient(135deg,#7c5cff,#00b7ff);
     --chip-ink:#ffffff;
     --radius:20px;
-    --shadow:0 18px 50px rgba(0,0,0,.08), 0 4px 18px rgba(0,0,0,.06);
-    --glass-shadow:0 8px 32px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.75);
-    --mut:#737373; --red:#111111;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#050505;
-      --surface:rgba(255,255,255,.07);
-      --surface-solid:#161616;
-      --surface-2:rgba(255,255,255,.06);
-      --glass:rgba(255,255,255,.07);
-      --glass-strong:rgba(255,255,255,.10);
-      --glass-border:rgba(255,255,255,.22);
-      --ink:#ffffff;
-      --ink-2:#d9d9d9;
-      --ink-3:#9a9a9a;
-      --line:rgba(255,255,255,.10);
-      --accent:#ffffff;
-      --accent-2:#cccccc;
-      --accent-strong:#ffffff;
-      --accent-soft:rgba(255,255,255,.14);
-      --chip:#ffffff;
-      --chip-ink:#111111;
-      --shadow:0 18px 50px rgba(0,0,0,.45);
-      --glass-shadow:0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
-      --mut:#9a9a9a; --red:#ffffff;
-    }
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+    --glass-shadow:0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
+    --mut:rgba(245,247,250,.65); --red:#ff5ca8;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    background:
-      radial-gradient(900px 520px at 8% -10%, rgba(0,0,0,.07), transparent 60%),
-      radial-gradient(800px 480px at 95% 0%, rgba(128,128,128,.12), transparent 58%),
-      radial-gradient(700px 600px at 50% 110%, rgba(0,0,0,.05), transparent 60%),
-      var(--bg);
+    background:var(--bg);
     background-attachment:fixed;
     color:var(--ink);
     font-family:"Outfit",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -77,6 +49,13 @@
     min-height:100vh;
     overflow-x:hidden;
   }
+  /* Liquid background — WALLZA style */
+  .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:linear-gradient(160deg, #0a0a12 0%, #12101f 45%, #0a0a12 100%)}
+  .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.75;animation:drift 18s ease-in-out infinite alternate}
+  .blob.b1{width:520px;height:520px;background:radial-gradient(circle, #7c5cff, transparent 65%);top:-140px;left:-120px}
+  .blob.b2{width:460px;height:460px;background:radial-gradient(circle, #00d4ff, transparent 65%);top:30%;right:-160px;animation-delay:-6s}
+  .blob.b3{width:420px;height:420px;background:radial-gradient(circle, #ff5ca8, transparent 65%);bottom:-160px;left:28%;animation-delay:-12s}
+  @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,-30px) scale(1.08)}}
   button,input,select{font:inherit}
   a{color:var(--accent)}
   .glass{
@@ -101,8 +80,8 @@
   .logo{display:flex;align-items:center;gap:13px;min-width:0}
   .brand-mark{
     width:50px;height:50px;border-radius:16px;flex:none;
-    background:linear-gradient(135deg,#ffffff 0%,#e5e5e5 55%,#bdbdbd 110%);
-    color:#111111;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(135deg,#7c5cff,#00b7ff);
+    color:#ffffff;display:grid;place-items:center;font-size:22px;
     box-shadow:0 10px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.55);
     border:1px solid rgba(255,255,255,.35);
   }
@@ -112,15 +91,15 @@
   .header-ig a.ig-name{display:inline-flex;align-items:center;gap:7px;color:var(--ink);font-size:14.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;text-decoration:none}
   .header-ig a.ig-follow{
     display:inline-flex;align-items:center;justify-content:center;
-    color:var(--chip-ink) !important;text-decoration:none;font-size:13.5px;font-weight:700;
+    color:#ffffff !important;text-decoration:none;font-size:13.5px;font-weight:700;
     padding:9px 18px;border-radius:999px;white-space:nowrap;
-    background:var(--chip);
+    background:linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     border:1px solid rgba(255,255,255,.35);
     box-shadow:0 8px 20px rgba(0,0,0,.22);
   }
   .header-ig a.ig-follow:hover{filter:brightness(1.06);transform:translateY(-1px)}
   .topbar .sp{flex:1}
-  .badge{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;border-radius:999px;flex:none;background:#111111;color:#ffffff}
+  .badge{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;border-radius:999px;flex:none;background:linear-gradient(135deg,#7c5cff,#00b7ff);color:#ffffff}
   .badge .dot{display:none}
   .layout{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
   @media (max-width:960px){.layout{grid-template-columns:1fr}}
@@ -129,12 +108,11 @@
   .sidebar h3{margin:0 0 10px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
   .field{display:flex;gap:8px;margin-bottom:8px}
   .field input[type=url],.field input[type=text],input[type=search]{
-    flex:1;min-width:0;background:rgba(255,255,255,.45);border:1.5px solid var(--glass-border);border-radius:14px;
+    flex:1;min-width:0;background:rgba(255,255,255,.06);border:1.5px solid var(--glass-border);border-radius:14px;
     -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
     color:var(--ink);padding:10px 12px;font-size:13.5px;outline:none;
   }
-  @media (prefers-color-scheme: dark){.field input[type=url],.field input[type=text],input[type=search]{background:rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}}
   .field input:focus,input[type=search]:focus{border-color:var(--accent)}
   .btn{
     border:0;cursor:pointer;border-radius:12px;font-weight:700;
@@ -160,17 +138,16 @@
     font-size:13.5px;font-weight:600;cursor:pointer;user-select:none;
   }
   .chip:hover{color:var(--ink)}
-  .chip.on{background:var(--chip);color:var(--chip-ink);border-color:var(--chip);font-weight:700}
+  .chip.on{background:var(--chip);color:var(--chip-ink);border-color:rgba(124,92,255,.65);font-weight:700}
   .list{overflow-y:auto;flex:1;min-height:120px;padding-right:2px}
   .list::-webkit-scrollbar{width:8px}
-  .list::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:8px}
+  .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:8px}
   .ch{
     display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px;border:1px solid var(--glass-border);
-    border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.32);cursor:pointer;
+    border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.05);cursor:pointer;
     -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
     color:var(--ink);content-visibility:auto;contain-intrinsic-size:auto 60px;
   }
-  @media (prefers-color-scheme: dark){.ch{background:rgba(255,255,255,.05)}}
   .ch:hover{border-color:var(--ink-3)}
   .ch.active{border-color:var(--accent);background:var(--accent-soft)}
   .ch img{width:42px;height:42px;object-fit:contain;border-radius:9px;background:#000000;flex:none}
@@ -224,6 +201,7 @@
 </style>
 </head>
 <body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div class="wrap">
   <header class="topbar glass">
     <div class="logo"><span class="brand-mark">▶</span><span><span class="brand-text">RAPTOR IPTV</span><small>Load a playlist and pick a channel to start watching.</small></span></div>
