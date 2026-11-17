@@ -118,7 +118,8 @@
   .raptor-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:btnShine 2.8s ease-in-out infinite}
   @keyframes btnFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   @keyframes btnShine{0%{left:-60%}60%,100%{left:130%}}
-  .site-footer{display:flex;justify-content:center;margin:28px 0 6px}
+  .site-footer{display:flex;flex-direction:column;align-items:center;gap:10px;margin:28px 0 6px}
+  .site-footer .copy{margin:0;font-size:12px;color:var(--ink-3)}
   .topbar .sp{flex:1}
   .badge{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 10px;border-radius:999px;flex:none;background:linear-gradient(135deg,#007a3d,#00c853);color:#ffffff}
   .badge .dot{display:none}
@@ -276,7 +277,7 @@
       <div class="list" id="channelList"></div>
     </aside>
   </div>
-  <footer class="site-footer"><a class="raptor-btn" href="https://raptor-cr7.github.io/" target="_blank" rel="noopener">🌐 Visit RAPTOR Website</a></footer>
+  <footer class="site-footer"><a class="raptor-btn" href="https://raptor-cr7.github.io/" target="_blank" rel="noopener">🌐 Visit RAPTOR Website</a><p class="copy">© 2026 RAPTOR IPTV — All rights reserved.</p></footer>
 </div>
 <div class="popup" id="loadPopup"><div class="popup-card"><button class="popup-close" id="popupClose" type="button" aria-label="Close">×</button><h2>Please Wait</h2><p>Please Wait For Channels Fully Loading</p></div></div>
 <div class="toast" id="toast"></div>
